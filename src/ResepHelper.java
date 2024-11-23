@@ -21,6 +21,9 @@ import java.util.function.Supplier;
 
 public class ResepHelper {
     
+    
+    
+    
     public static Connection KoneksiDatabase() {
         Connection conn = null;
         try {
@@ -36,29 +39,30 @@ public class ResepHelper {
     }
 
     public static void MembuatTabelResep() {
-        String sql = "CREATE TABLE IF NOT EXISTS kontak (\n"
-                    + " id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
-                    + " nama_resep TEXT NOT NULL,\n"
-                    + " bahan_bahan TEXT NOT NULL,\n"
-                    + " langkah_langkah TEXT NOT NULL,\n"
-                    + " kategori TEXT NOT NULL\n"
-                    + ");";
-        try (Connection conn = KoneksiDatabase();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
+    String sql = "CREATE TABLE IF NOT EXISTS resep (\n"
+                + " id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                + " nama_resep TEXT NOT NULL,\n"
+                + " bahan_bahan TEXT NOT NULL,\n"
+                + " langkah_langkah TEXT NOT NULL,\n"
+                + " kategori TEXT NOT NULL\n"
+                + ");";
+    try (Connection conn = KoneksiDatabase();
+         Statement stmt = conn.createStatement()) {
+        stmt.execute(sql);
+    } catch (SQLException e) {
+        System.out.println(e.getMessage());
     }
+}
+
     
-    public static void MenambahResep(String nama_resep, String bahanbahan, String langkahlangkah, String kategori) {
-        String sql = "INSERT INTO kontak(nama, no_telepon, kategori) VALUES(?, ?, ?)";
+    public static void MenambahResep(String nama_resep, String bahan_bahan, String langkah_langkah, String kategori) {
+        String sql = "INSERT INTO resep(nama_resep, bahan_bahan, langkah_langkah, kategori) VALUES(?, ?, ?, ?)";
 
         try (Connection conn = KoneksiDatabase();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nama_resep);
-            pstmt.setString(2, bahanbahan);
-            pstmt.setString(3, langkahlangkah);
+            pstmt.setString(2, bahan_bahan);
+            pstmt.setString(3, langkah_langkah);
             pstmt.setString(4, kategori);
             pstmt.executeUpdate();
             System.out.println("Resep berhasil ditambahkan.");
@@ -68,7 +72,7 @@ public class ResepHelper {
     }
 
     public static List<Map<String, String>> DapatkanResep() {
-        List<Map<String, String>> kontak = new ArrayList<>();
+        List<Map<String, String>> nama_resep = new ArrayList<>();
         String sql = "SELECT * FROM resep";
 
         try (Connection conn = KoneksiDatabase();
@@ -78,71 +82,72 @@ public class ResepHelper {
             while (rs.next()) {
                 Map<String, String> dataResep = new HashMap<>();
                 dataResep.put("id", String.valueOf(rs.getInt("id")));
-                dataResep.put("nama", rs.getString("nama"));
-                dataResep.put("no_telepon", rs.getString("no_telepon"));
+                dataResep.put("nama_resep", rs.getString("nama_resep"));
+                dataResep.put("bahan_bahan", rs.getString("bahan_bahan"));
+                dataResep.put("langkah_langkah", rs.getString("langkah_langkah"));
                 dataResep.put("kategori", rs.getString("kategori"));
-                kontak.add(dataResep);
+                nama_resep.add(dataResep);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return kontak;
+        return nama_resep;
     }
 
-    public static void MemperbaruiResep(int id, String nama_resep, String bahanbahan, String langkahlangkah, String kategori) {
-        String sql = "UPDATE resep SET nama_resep = ?, bahanbahan = ?, langkahlangkah = ?, kategori = ?, WHERE id = ?";
+    public static void MemperbaruiResep(int id, String nama_resep, String bahan_bahan, String langkah_langkah, String kategori) {
+        String sql = "UPDATE resep SET nama_resep = ?, bahan_bahan = ?, langkah_langkah = ?, kategori = ? WHERE id = ?";
 
         try (Connection conn = KoneksiDatabase();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nama_resep);
-            pstmt.setString(2, bahanbahan);
-            pstmt.setString(3, langkahlangkah);
+            pstmt.setString(2, bahan_bahan);
+            pstmt.setString(3, langkah_langkah);
             pstmt.setString(4, kategori);
             pstmt.setInt(5, id);
             pstmt.executeUpdate();
-            System.out.println("Kontak berhasil diperbarui.");
+            System.out.println("Resep berhasil diperbarui.");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public static void MenghapusKontak(int id) {
-        String sql = "DELETE FROM kontak WHERE id = ?";
+    public static void MenghapusResep(int id) {
+        String sql = "DELETE FROM resep WHERE id = ?";
 
         try (Connection conn = KoneksiDatabase();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
-            System.out.println("Kontak berhasil dihapus.");
+            System.out.println("Resep berhasil dihapus.");
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
     
-    public static List<Map<String, String>> MencariKontak(String keyword) {
-    List<Map<String, String>> ListKontak = new ArrayList<>();
-    String sql = "SELECT * FROM kontak WHERE nama LIKE ? OR no_telepon LIKE ?";
+    public static List<Map<String, String>> MencariResep(String keyword) {
+    List<Map<String, String>> ListResep = new ArrayList<>();
+    String sql = "SELECT * FROM resep WHERE nama_resep LIKE ?";
 
         try (Connection conn = KoneksiDatabase();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // Gunakan '%' untuk pencarian mirip (LIKE)
             pstmt.setString(1, "%" + keyword + "%");
-            pstmt.setString(2, "%" + keyword + "%");
 
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Map<String, String> kontak = new HashMap<>();
-                kontak.put("id", String.valueOf(rs.getInt("id")));
-                kontak.put("nama", rs.getString("nama"));
-                kontak.put("no_telepon", rs.getString("no_telepon"));
-                kontak.put("kategori", rs.getString("kategori"));
-                ListKontak.add(kontak);
+                Map<String, String> resep = new HashMap<>();
+                resep.put("id", String.valueOf(rs.getInt("id")));
+                resep.put("nama_resep", rs.getString("nama_resep"));
+                resep.put("bahan_bahan", rs.getString("bahan_bahan"));
+                resep.put("langkah_langkah", rs.getString("langkah_langkah"));
+                resep.put("kategori", rs.getString("kategori"));
+                ListResep.add(resep);
             }
         } catch (SQLException e) {
             System.out.println("Error saat mencari kontak: " + e.getMessage());
         }
-        return ListKontak;
+        return ListResep;
     }
 
     
@@ -275,35 +280,8 @@ public class ResepHelper {
     
 
     
-    private String translateToEnglish(String keyword) {
-    try {
-        String urlString = "https://lingva.ml/api/v1/id/en/" + keyword.replace(" ", "%20");
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+    
 
-        int responseCode = conn.getResponseCode();
-        if (responseCode != 200) {
-            throw new Exception("HTTP response code: " + responseCode);
-        }
-
-        StringBuilder content;
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-            String inputLine;
-            content = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-        }
-        conn.disconnect();
-
-        JSONObject json = new JSONObject(content.toString());
-        return json.getString("translation");
-    } catch (Exception e) {
-        return keyword + " (Gagal diterjemahkan)";
-    }
-}
 
     
 
